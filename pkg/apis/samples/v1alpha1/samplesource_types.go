@@ -87,6 +87,12 @@ type SampleSourceSpec struct {
 	// units are "ns", "us" (or "µs"), "ms", "s", "m", "h". If unspecified
 	// this will default to "10s".
 	Interval string `json:"interval"`
+
+	// MessageTemplate is the text/template which is used for every event sent.
+	//
+	// The string format is any valid go text/template template string where
+	// the fields are any variables set in the config map
+	MessageTemplate string `json:"messageTemplate"`
 }
 
 const (
