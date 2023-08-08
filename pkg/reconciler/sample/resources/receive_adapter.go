@@ -101,5 +101,8 @@ func makeEnv(eventSource string, spec *v1alpha1.SampleSourceSpec) []corev1.EnvVa
 	}, {
 		Name:  "METRICS_DOMAIN",
 		Value: "knative.dev/eventing",
+	}, {
+		Name:  "MESSAGE_TEMPLATE",
+		Value: spec.MessageTemplate,
 	}}
 }

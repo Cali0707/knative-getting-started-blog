@@ -17,6 +17,7 @@ package adapter
 
 import (
 	"context"
+	"text/template"
 	"time"
 
 	cloudevents "github.com/cloudevents/sdk-go/v2"
@@ -32,15 +33,18 @@ type envConfig struct {
 
 	// Interval between events, for example "5s", "100ms"
 	Interval time.Duration `envconfig:"INTERVAL" required:"true"`
+
+	MessageTemplate string `envconfig:"MESSAGE_TEMPLATE" required:"true"`
 }
 
 func NewEnv() adapter.EnvConfigAccessor { return &envConfig{} }
 
 // Adapter generates events at a regular interval.
 type Adapter struct {
-	client   cloudevents.Client
-	interval time.Duration
-	logger   *zap.SugaredLogger
+	client          cloudevents.Client
+	interval        time.Duration
+	messageTemplate template.Template
+	logger          *zap.SugaredLogger
 
 	nextID int
 }
@@ -90,9 +94,11 @@ func NewAdapter(ctx context.Context, aEnv adapter.EnvConfigAccessor, ceClient cl
 	env := aEnv.(*envConfig) // Will always be our own envConfig type
 	logger := logging.FromContext(ctx)
 	logger.Infow("Heartbeat example", zap.Duration("interval", env.Interval))
+	messageTemplate, _ := template.New("samplesource.message.template").Parse(env.MessageTemplate)
 	return &Adapter{
-		interval: env.Interval,
-		client:   ceClient,
-		logger:   logger,
+		interval:        env.Interval,
+		messageTemplate: *messageTemplate,
+		client:          ceClient,
+		logger:          logger,
 	}
 }
