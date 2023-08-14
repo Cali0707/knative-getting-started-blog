@@ -18,6 +18,7 @@ package resources
 
 import (
 	"fmt"
+	"strings"
 
 	v1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -35,6 +36,7 @@ type ReceiveAdapterArgs struct {
 	Source         *v1alpha1.SampleSource
 	EventSource    string
 	AdditionalEnvs []corev1.EnvVar
+	ConfigVars     map[string]string
 }
 
 // MakeReceiveAdapter generates (but does not insert into K8s) the Receive Adapter Deployment for
@@ -66,7 +68,7 @@ func MakeReceiveAdapter(args *ReceiveAdapterArgs) *v1.Deployment {
 							Name:  "receive-adapter",
 							Image: args.Image,
 							Env: append(
-								makeEnv(args.EventSource, &args.Source.Spec),
+								makeEnv(args.EventSource, &args.Source.Spec, args.ConfigVars),
 								args.AdditionalEnvs...,
 							),
 						},
@@ -77,7 +79,7 @@ func MakeReceiveAdapter(args *ReceiveAdapterArgs) *v1.Deployment {
 	}
 }
 
-func makeEnv(eventSource string, spec *v1alpha1.SampleSourceSpec) []corev1.EnvVar {
+func makeEnv(eventSource string, spec *v1alpha1.SampleSourceSpec, configVars map[string]string) []corev1.EnvVar {
 	return []corev1.EnvVar{{
 		Name:  "EVENT_SOURCE",
 		Value: eventSource,
@@ -104,5 +106,17 @@ func makeEnv(eventSource string, spec *v1alpha1.SampleSourceSpec) []corev1.EnvVa
 	}, {
 		Name:  "MESSAGE_TEMPLATE",
 		Value: spec.MessageTemplate,
+	}, {
+		Name:  "CONFIG_VARS",
+		Value: mapToEnvString(configVars),
 	}}
+}
+
+func mapToEnvString(envMap map[string]string) string {
+	strs := make([]string, 0, len(envMap))
+	idx := 0
+	for k, v := range envMap {
+		strs[idx] = fmt.Sprintf("%s:%s", k, v)
+	}
+	return strings.Join(strs, ",")
 }
