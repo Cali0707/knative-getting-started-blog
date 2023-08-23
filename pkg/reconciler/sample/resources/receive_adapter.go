@@ -113,10 +113,14 @@ func makeEnv(eventSource string, spec *v1alpha1.SampleSourceSpec, configVars map
 }
 
 func mapToEnvString(envMap map[string]string) string {
-	strs := make([]string, 0, len(envMap))
+	if len(envMap) == 0 {
+		return ""
+	}
+	strs := make([]string, len(envMap))
 	idx := 0
 	for k, v := range envMap {
 		strs[idx] = fmt.Sprintf("%s:%s", k, v)
+		idx++
 	}
 	return strings.Join(strs, ",")
 }

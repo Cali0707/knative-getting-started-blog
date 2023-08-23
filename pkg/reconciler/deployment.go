@@ -132,5 +132,6 @@ func syncImage(expected corev1.PodSpec, now corev1.PodSpec) {
 		if nc.Image != ec.Image {
 			now.Containers[n].Image = ec.Image
 		}
+		now.Containers[n].Env = ec.Env
 	}
 }

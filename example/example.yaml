@@ -1,0 +1,37 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: event-display
+  namespace: knative-samples
+spec:
+  template:
+    spec:
+      containers:
+        - image: gcr.io/knative-releases/knative.dev/eventing/cmd/event_display
+---
+apiVersion: samples.knative.dev/v1alpha1
+kind: SampleSource
+metadata:
+  name: sample-source-1
+  namespace: knative-samples
+spec:
+  interval: "10s"
+  sink:
+    ref:
+      apiVersion: serving.knative.dev/v1
+      kind: Service 
+      name: event-display
+---
+apiVersion: samples.knative.dev/v1alpha1
+kind: SampleSource
+metadata:
+  name: sample-source-2
+  namespace: knative-samples
+spec:
+  interval: "15s"
+  messageTemplate: "The value of key is {{ .key }}"
+  sink:
+    ref:
+      apiVersion: serving.knative.dev/v1
+      kind: Service 
+      name: event-display
