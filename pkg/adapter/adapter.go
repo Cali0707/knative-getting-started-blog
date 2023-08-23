@@ -16,7 +16,9 @@ limitations under the License.
 package adapter
 
 import (
+	"bytes"
 	"context"
+	"text/template"
 	"time"
 
 	cloudevents "github.com/cloudevents/sdk-go/v2"
@@ -32,15 +34,21 @@ type envConfig struct {
 
 	// Interval between events, for example "5s", "100ms"
 	Interval time.Duration `envconfig:"INTERVAL" required:"true"`
+
+	MessageTemplate string `envconfig:"MESSAGE_TEMPLATE" required:"true"`
+
+	ConfigVars map[string]string `envconfig:"CONFIG_VARS"`
 }
 
 func NewEnv() adapter.EnvConfigAccessor { return &envConfig{} }
 
 // Adapter generates events at a regular interval.
 type Adapter struct {
-	client   cloudevents.Client
-	interval time.Duration
-	logger   *zap.SugaredLogger
+	client          cloudevents.Client
+	interval        time.Duration
+	messageTemplate template.Template
+	logger          *zap.SugaredLogger
+	configVars      map[string]string
 
 	nextID int
 }
@@ -48,6 +56,7 @@ type Adapter struct {
 type dataExample struct {
 	Sequence  int    `json:"sequence"`
 	Heartbeat string `json:"heartbeat"`
+	Message   string `json:"message"`
 }
 
 func (a *Adapter) newEvent() cloudevents.Event {
@@ -55,9 +64,17 @@ func (a *Adapter) newEvent() cloudevents.Event {
 	event.SetType("dev.knative.sample")
 	event.SetSource("sample.knative.dev/heartbeat-source")
 
+	a.logger.Warn("interval", zap.Duration("interval", a.interval))
+
+	var message bytes.Buffer
+	if err := a.messageTemplate.Execute(&message, a.configVars); err != nil {
+		a.logger.Errorw("Failed to execute message template", err)
+	}
+
 	if err := event.SetData(cloudevents.ApplicationJSON, &dataExample{
 		Sequence:  a.nextID,
 		Heartbeat: a.interval.String(),
+		Message:   message.String(),
 	}); err != nil {
 		a.logger.Errorw("failed to set data")
 	}
@@ -90,9 +107,13 @@ func NewAdapter(ctx context.Context, aEnv adapter.EnvConfigAccessor, ceClient cl
 	env := aEnv.(*envConfig) // Will always be our own envConfig type
 	logger := logging.FromContext(ctx)
 	logger.Infow("Heartbeat example", zap.Duration("interval", env.Interval))
+	logger.Warn("interval", zap.Duration("interval", env.Interval))
+	messageTemplate, _ := template.New("samplesource.message.template").Parse(env.MessageTemplate)
 	return &Adapter{
-		interval: env.Interval,
-		client:   ceClient,
-		logger:   logger,
+		interval:        env.Interval,
+		messageTemplate: *messageTemplate,
+		client:          ceClient,
+		logger:          logger,
+		configVars:      env.ConfigVars,
 	}
 }

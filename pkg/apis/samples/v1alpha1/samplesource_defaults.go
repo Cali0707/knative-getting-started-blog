@@ -36,6 +36,10 @@ func (s *SampleSource) SetDefaults(ctx context.Context) {
 		s.Spec.Interval = "10s"
 	}
 
+	if s != nil && s.Spec.MessageTemplate == "" {
+		s.Spec.MessageTemplate = "Hello, world!"
+	}
+
 	// call SetDefaults against duckv1.Destination with a context of ObjectMeta of SampleSource.
 	withNS := apis.WithinParent(ctx, s.ObjectMeta)
 	s.Spec.Sink.SetDefaults(withNS)

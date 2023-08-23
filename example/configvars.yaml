@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sample-source-config-vars 
+  namespace: knative-samples 
+data:
+  key: "top secret!"
+

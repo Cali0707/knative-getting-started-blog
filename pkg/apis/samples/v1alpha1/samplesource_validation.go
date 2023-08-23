@@ -18,6 +18,7 @@ package v1alpha1
 
 import (
 	"context"
+	"text/template"
 	"time"
 
 	"knative.dev/pkg/apis"
@@ -47,6 +48,11 @@ func (sspec *SampleSourceSpec) Validate(ctx context.Context) *apis.FieldError {
 	//example: validation for interval field.
 	if _, fe := time.ParseDuration(sspec.Interval); fe != nil {
 		errs = errs.Also(apis.ErrInvalidValue(fe, "interval"))
+	}
+
+	//validation for the message template field
+	if _, fe := template.New("samplesource.message.template").Parse(sspec.MessageTemplate); fe != nil {
+		errs = errs.Also(apis.ErrInvalidValue(fe, "messageTemplate"))
 	}
 
 	//example: validation for serviceAccountName field.

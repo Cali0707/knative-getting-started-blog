@@ -35,6 +35,7 @@ import (
 
 	kubeclient "knative.dev/pkg/client/injection/kube/client"
 	deploymentinformer "knative.dev/pkg/client/injection/kube/informers/apps/v1/deployment"
+	apisconfig "knative.dev/sample-source/pkg/apis/config"
 	samplesourceinformer "knative.dev/sample-source/pkg/client/injection/informers/samples/v1alpha1/samplesource"
 	"knative.dev/sample-source/pkg/client/injection/reconciler/samples/v1alpha1/samplesource"
 )
@@ -52,6 +53,8 @@ func NewController(
 		dr: &reconciler.DeploymentReconciler{KubeClientSet: kubeclient.Get(ctx)},
 		// Config accessor takes care of tracing/config/logging config propagation to the receive adapter
 		configAccessor: reconcilersource.WatchConfigurations(ctx, "sample-source", cmw),
+
+		messageConfigVars: &apisconfig.SampleConfigVars{},
 	}
 	if err := envconfig.Process("", r); err != nil {
 		logging.FromContext(ctx).Panicf("required environment variable is not defined: %v", err)
@@ -60,6 +63,12 @@ func NewController(
 	impl := samplesource.NewImpl(ctx, r)
 
 	r.sinkResolver = resolver.NewURIResolverFromTracker(ctx, impl.Tracker)
+
+	messageVarsStore := apisconfig.NewStore(ctx, func(_ string, value *apisconfig.SampleConfigVars) {
+		r.messageConfigVars.Reset(value)
+		impl.GlobalResync(sampleSourceInformer.Informer())
+	})
+	messageVarsStore.WatchConfigs(cmw)
 
 	sampleSourceInformer.Informer().AddEventHandler(controller.HandleAll(impl.Enqueue))
 

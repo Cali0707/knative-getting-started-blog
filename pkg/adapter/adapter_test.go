@@ -41,7 +41,7 @@ func TestAdapter(t *testing.T) {
 
 	// Keep the adapter logging quiet for tests.
 	ctx := logging.WithLogger(context.Background(), zap.NewNop().Sugar())
-	a := NewAdapter(ctx, &envConfig{Interval: time.Millisecond}, c)
+	a := NewAdapter(ctx, &envConfig{Interval: time.Millisecond, MessageTemplate: "Hello, world!"}, c)
 	ctx, cancel := context.WithCancel(ctx)
 	go func() {
 		if err := a.Start(ctx); err != nil {
@@ -59,7 +59,7 @@ func verify(t *testing.T, received chan cloudevents.Event) {
 		//m := map[string]json.RawMessage{}
 		m := &dataExample{}
 		assert.NoError(t, e.DataAs(&m))
-		n := &dataExample{Sequence: id, Heartbeat: "1ms"}
+		n := &dataExample{Sequence: id, Heartbeat: "1ms", Message: "Hello, world!"}
 		assert.Equal(t, n, m)
 	}
 }
@@ -83,6 +83,7 @@ func TestAdapterMain(t *testing.T) {
 		t.Name()+"=main",
 		"K_SINK="+sink.URL(),
 		"INTERVAL="+"1ms",
+		"MESSAGE_TEMPLATE="+"Hello, world!",
 		"NAMESPACE=namespace",
 		"NAME=name",
 		`K_METRICS_CONFIG={"domain":"x", "component":"x", "prometheusport":0, "configmap":{}}`,

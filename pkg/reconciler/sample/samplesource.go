@@ -31,6 +31,7 @@ import (
 	sourcesv1 "knative.dev/eventing/pkg/apis/sources/v1"
 	reconcilersource "knative.dev/eventing/pkg/reconciler/source"
 
+	apisconfig "knative.dev/sample-source/pkg/apis/config"
 	"knative.dev/sample-source/pkg/apis/samples/v1alpha1"
 	reconcilersamplesource "knative.dev/sample-source/pkg/client/injection/reconciler/samples/v1alpha1/samplesource"
 	"knative.dev/sample-source/pkg/reconciler"
@@ -46,6 +47,8 @@ type Reconciler struct {
 	sinkResolver *resolver.URIResolver
 
 	configAccessor reconcilersource.ConfigAccessor
+
+	messageConfigVars *apisconfig.SampleConfigVars
 }
 
 // Check that our Reconciler implements Interface
@@ -63,6 +66,7 @@ func (r *Reconciler) ReconcileKind(ctx context.Context, src *v1alpha1.SampleSour
 			Source:         src,
 			Labels:         resources.Labels(src.Name),
 			AdditionalEnvs: r.configAccessor.ToEnvVars(), // Grab config envs for tracing/logging/metrics
+			ConfigVars:     r.messageConfigVars.GetConfigVars(),
 		}),
 	)
 	if ra != nil {
