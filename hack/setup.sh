@@ -122,7 +122,7 @@ while IFS= read -r line; do
         sleep 5
         kubectl get pods -n knative-eventing | grep -v NAME | while IFS= read -r line; do continue; done
     fi
-done < <(kubectl get pods -n knative-eventing | grep -v NAME)
+done < <(kubectl get pods -n knative-samples | grep -v NAME)
 
 echo "All the pods are in the desired state."
 
