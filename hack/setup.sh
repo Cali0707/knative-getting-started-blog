@@ -18,9 +18,6 @@ kubectl patch configmap/config-network \
   --type merge \
   --patch '{"data":{"ingress-class":"kourier.ingress.networking.knative.dev"}}'
 
-echo "Fetching External IP or CNAME..."
-kubectl --namespace kourier-system get service kourier
-
 echo "Waiting for all Knative Serving pods to be in the Running state..."
 
 while IFS= read -r line; do
@@ -70,24 +67,8 @@ echo "Before we proceed with installing the config, we need to check whether ko 
 if command -v ko >/dev/null 2>&1; then
     echo "ko is installed, proceeding with the installation of the config."
 else
-    echo "ko is not installed. Installing ko..."
-    # Check if Go is installed
-    if ! command -v go >/dev/null 2>&1; then
-        echo "Go is not installed. Please manually install Go first."
-        exit 1
-    fi
-
-    # Install ko
-    echo "Installing ko..."
-    GO111MODULE=on go get github.com/google/ko/cmd/ko
-
-    # Verifying ko installation
-    if command -v ko >/dev/null 2>&1; then
-        echo "ko successfully installed. Proceeding with the installation of the config"
-    else
-        echo "Failed to install ko. Please try to manually install ko."
-        exit 1
-    fi
+    echo "ko is not installed. Please manually install ko before proceeding."
+    exit 1
 fi
 
 echo "Installing the config..."
@@ -124,4 +105,4 @@ while IFS= read -r line; do
     fi
 done < <(kubectl get pods -n knative-samples | grep -v NAME)
 
-echo "All the pods are in the desired state."
+echo "All the pods are in the desired state. You are all set."
