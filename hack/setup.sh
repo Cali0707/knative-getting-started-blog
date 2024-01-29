@@ -125,5 +125,3 @@ while IFS= read -r line; do
 done < <(kubectl get pods -n knative-samples | grep -v NAME)
 
 echo "All the pods are in the desired state."
-
-echo "You are good to go! Everything you need have been installed successfully."
