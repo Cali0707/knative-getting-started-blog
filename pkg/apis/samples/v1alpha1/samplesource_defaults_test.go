@@ -37,6 +37,7 @@ func TestSampleSourceDefaults(t *testing.T) {
 				Spec: SampleSourceSpec{
 					ServiceAccountName: "default",
 					Interval:           "10s",
+					MessageTemplate:    "Hello, world!",
 				},
 			},
 		},
@@ -48,6 +49,7 @@ func TestSampleSourceDefaults(t *testing.T) {
 				Spec: SampleSourceSpec{
 					ServiceAccountName: "default",
 					Interval:           "10s",
+					MessageTemplate:    "Hello, world!",
 					SourceSpec: duckv1.SourceSpec{
 						Sink: duckv1.Destination{
 							Ref: &duckv1.KReference{},
@@ -62,6 +64,7 @@ func TestSampleSourceDefaults(t *testing.T) {
 				Spec: SampleSourceSpec{
 					ServiceAccountName: "default",
 					Interval:           "10s",
+					MessageTemplate:    "Hello, world!",
 					SourceSpec: duckv1.SourceSpec{
 						Sink: duckv1.Destination{
 							Ref: &duckv1.KReference{
@@ -69,6 +72,20 @@ func TestSampleSourceDefaults(t *testing.T) {
 							},
 						},
 					},
+				},
+			},
+		},
+		"custom message template": {
+			initial: SampleSource{
+				Spec: SampleSourceSpec{
+					MessageTemplate: "This is a custom string!",
+				},
+			},
+			expected: SampleSource{
+				Spec: SampleSourceSpec{
+					ServiceAccountName: "default",
+					Interval:           "10s",
+					MessageTemplate:    "This is a custom string!",
 				},
 			},
 		},
