@@ -37,10 +37,35 @@ spec:
       schema:
         openAPIV3Schema:
           type: object
-          # this is a work around so we don't need to flesh out the
-          # schema for each version at this time
-          #
-          # see issue: https://github.com/knative/serving/issues/912
+          properties:
+            spec:
+              type: object
+              properties:
+                interval:
+                  type: string
+                messageTemplate:
+                  type: string
+                serviceAccountName:
+                  type: string
+                sink:
+                  type: object
+                  properties:
+                    ref:
+                      type: object
+                      properties:
+                        apiVersion:
+                          type: string
+                        kind:
+                          type: string
+                        name:
+                          type: string
+            status:
+              type: object
+              properties:
+                status:
+                  type: string
+                sinkUri:
+                  type: string
           x-kubernetes-preserve-unknown-fields: true
       additionalPrinterColumns:
         - name: Ready
